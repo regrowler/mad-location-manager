@@ -1,11 +1,11 @@
 package com.example.lezh1k.sensordatacollector;
 
 import android.Manifest;
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.hardware.SensorManager;
 import android.location.Location;
 import android.location.LocationManager;
@@ -13,13 +13,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.preference.PreferenceManager;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
-import androidx.appcompat.app.AppCompatActivity;
 import android.util.Log;
-import android.util.TypedValue;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -29,6 +23,12 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+
 import com.elvishew.xlog.LogLevel;
 import com.elvishew.xlog.XLog;
 import com.elvishew.xlog.printer.AndroidPrinter;
@@ -36,26 +36,18 @@ import com.elvishew.xlog.printer.Printer;
 import com.elvishew.xlog.printer.file.FilePrinter;
 import com.elvishew.xlog.printer.file.backup.FileSizeBackupStrategy;
 import com.elvishew.xlog.printer.file.naming.FileNameGenerator;
-import mad.location.manager.lib.Commons.Utils;
-import mad.location.manager.lib.Interfaces.ILogger;
-import mad.location.manager.lib.Interfaces.LocationServiceInterface;
-import mad.location.manager.lib.Loggers.GeohashRTFilter;
-import mad.location.manager.lib.SensorAux.SensorCalibrator;
-import mad.location.manager.lib.Services.KalmanLocationService;
-import mad.location.manager.lib.Services.ServicesHelper;
-import mad.location.manager.lib.Services.Settings;
-
 import com.example.lezh1k.sensordatacollector.Interfaces.MapInterface;
 import com.example.lezh1k.sensordatacollector.Presenters.MapPresenter;
 import com.mapbox.mapboxsdk.Mapbox;
 import com.mapbox.mapboxsdk.annotations.Polyline;
-import com.mapbox.mapboxsdk.annotations.PolylineOptions;
 import com.mapbox.mapboxsdk.camera.CameraPosition;
-import com.mapbox.mapboxsdk.camera.CameraUpdateFactory;
-import com.mapbox.mapboxsdk.constants.Style;
 import com.mapbox.mapboxsdk.geometry.LatLng;
-import com.mapbox.mapboxsdk.maps.MapView;
 import com.mapbox.mapboxsdk.maps.MapboxMap;
+
+import org.osmdroid.config.Configuration;
+import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
+import org.osmdroid.util.GeoPoint;
+import org.osmdroid.views.MapView;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
@@ -63,6 +55,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
+
+import mad.location.manager.lib.Commons.Utils;
+import mad.location.manager.lib.Interfaces.ILogger;
+import mad.location.manager.lib.Interfaces.LocationServiceInterface;
+import mad.location.manager.lib.Loggers.GeohashRTFilter;
+import mad.location.manager.lib.SensorAux.SensorCalibrator;
+import mad.location.manager.lib.Services.ServicesHelper;
+import mad.location.manager.lib.Services.Settings;
 
 public class MainActivity extends AppCompatActivity implements LocationServiceInterface, MapInterface, ILogger {
 
@@ -104,7 +104,7 @@ public class MainActivity extends AppCompatActivity implements LocationServiceIn
 
     @Override
     public void log2file(String format, Object... args) {
-        XLog.i(format, args);
+//        XLog.i(format, args);
     }
 
 
@@ -164,7 +164,7 @@ public class MainActivity extends AppCompatActivity implements LocationServiceIn
 
     private MapPresenter m_presenter;
     private MapboxMap m_map;
-    private MapView m_mapView;
+    private org.osmdroid.views.MapView m_mapView;
 
     private GeohashRTFilter m_geoHashRTFilter;
     private SensorCalibrator m_sensorCalibrator = null;
@@ -207,7 +207,7 @@ public class MainActivity extends AppCompatActivity implements LocationServiceIn
                     return;
                 }
                 value.stop();
-                initXlogPrintersFileName();
+//                initXlogPrintersFileName();
                 Settings settings =
                         new Settings(
                                 Utils.ACCELEROMETER_DEFAULT_DEVIATION,
@@ -341,13 +341,13 @@ public class MainActivity extends AppCompatActivity implements LocationServiceIn
 
     @Override
     public void locationChanged(Location location) {
-        if (m_map != null && m_presenter != null) {
-            if (!m_map.isMyLocationEnabled()) {
-                m_map.setMyLocationEnabled(true);
-                m_map.getMyLocationViewSettings().setForegroundTintColor(ContextCompat.getColor(this, R.color.red));
-            }
+        if (m_presenter != null) {
+//            if (!m_map.isMyLocationEnabled()) {
+//                m_map.setMyLocationEnabled(true);
+//                m_map.getMyLocationViewSettings().setForegroundTintColor(ContextCompat.getColor(this, R.color.red));
+//            }
 
-            m_presenter.locationChanged(location, m_map.getCameraPosition());
+            m_presenter.locationChanged(location, null);
         }
     }
 
@@ -366,31 +366,44 @@ public class MainActivity extends AppCompatActivity implements LocationServiceIn
         cbFilteredKalman = (CheckBox) findViewById(R.id.cbFilteredKalman);
         cbFilteredKalmanGeo = (CheckBox) findViewById(R.id.cbFilteredKalmanGeo);
         boolean enabled[] = {cbFilteredKalman.isChecked(), cbFilteredKalmanGeo.isChecked(), cbGps.isChecked()};
-        if (m_map != null) {
+        if (m_mapView != null) {
             runOnUiThread(() ->
-                    m_mapView.post(() -> {
-                        if (lines[interestedRoute] != null)
-                            m_map.removeAnnotation(lines[interestedRoute]);
+              m_mapView.post(() -> {
+//                  if (lines[interestedRoute] != null)
+//                      m_map.removeAnnotation(lines[interestedRoute]);
 
-                        if (!enabled[interestedRoute])
-                            route.clear(); //too many hacks here
+                  if (!enabled[interestedRoute])
+                      route.clear(); //too many hacks here
 
-                        lines[interestedRoute] = m_map.addPolyline(new PolylineOptions()
-                                .addAll(route)
-                                .color(ContextCompat.getColor(this, routeColors[interestedRoute]))
-                                .width(routeWidths[interestedRoute]));
-                    }));
+//                  lines[interestedRoute] = m_map.addPolyline(new PolylineOptions()
+//                    .addAll(route)
+//                    .color(ContextCompat.getColor(this, routeColors[interestedRoute]))
+//                    .width(routeWidths[interestedRoute]));
+                  org.osmdroid.views.overlay.Polyline testLine = new org.osmdroid.views.overlay.Polyline(m_mapView);
+                  ArrayList<GeoPoint> a = new ArrayList<>();
+                  for (int i = 0; i < route.size(); i++) {
+                      a.add(new GeoPoint(route.get(i).getLatitude(),route.get(i).getLongitude()));
+                  }
+                  testLine.setPoints(a);
+                  testLine.setWidth(5f);
+                  testLine.setGeodesic(true);
+                  testLine.setColor(ContextCompat.getColor(this, routeColors[interestedRoute]));
+                  m_mapView.getOverlayManager().add(testLine);
+              }));
         }
+    }
+
+    @Override
+    public void clearOverlay() {
+        m_mapView.getOverlayManager().clear();
     }
 
     @Override
     public void moveCamera(CameraPosition position) {
         runOnUiThread(() ->
-                m_mapView.postDelayed(() -> {
-                    if (m_map != null) {
-                        m_map.animateCamera(CameraUpdateFactory.newCameraPosition(position));
-                    }
-                }, 100));
+          m_mapView.postDelayed(() -> {
+              m_mapView.getController().animateTo(new GeoPoint(position.target.getLatitude(), position.target.getLongitude()));
+          }, 100));
     }
 
     @Override
@@ -409,38 +422,47 @@ public class MainActivity extends AppCompatActivity implements LocationServiceIn
     }
 
     public void setupMap(@Nullable Bundle savedInstanceState) {
+        Configuration.getInstance().load(
+          this,
+          PreferenceManager.getDefaultSharedPreferences(this)
+        );
+        Configuration.getInstance().setUserAgentValue(BuildConfig.APPLICATION_ID);
         m_mapView = (MapView) findViewById(R.id.mapView);
-        m_mapView.onCreate(savedInstanceState);
-
+        m_mapView.setTileSource(TileSourceFactory.MAPNIK);
+        m_mapView.setMultiTouchControls(true);
+        m_mapView.setBuiltInZoomControls(true);
+        m_mapView.getController().setZoom(15); //set initial zoom-level, depends on your need
+//        m_mapView.onCreate(savedInstanceState);
+//
         m_presenter = new MapPresenter(this, this, m_geoHashRTFilter);
-        m_mapView.getMapAsync(mapboxMap -> {
-            m_map = mapboxMap;
-            MainActivity this_ = this;
-            ProgressDialog progress = new ProgressDialog(this);
-            progress.setTitle("Loading");
-            progress.setMessage("Wait while map loading...");
-            progress.setCancelable(false); // disable dismiss by tapping outside of the dialog
-            progress.show();
-
-            m_map.setStyleUrl(BuildConfig.lightMapStyle);
-            m_map.setStyleUrl(Style.SATELLITE_STREETS, new MapboxMap.OnStyleLoadedListener() {
-                @Override
-                public void onStyleLoaded(String style) {
-                    m_map.getUiSettings().setLogoEnabled(false);
-                    m_map.getUiSettings().setAttributionEnabled(false);
-                    m_map.getUiSettings().setTiltGesturesEnabled(false);
-
-                    int leftMargin = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 16, getResources().getDisplayMetrics());
-                    int topMargin = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 56, getResources().getDisplayMetrics());
-                    int rightMargin = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 16, getResources().getDisplayMetrics());
-                    int bottomMargin = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 16, getResources().getDisplayMetrics());
-                    m_map.getUiSettings().setCompassMargins(leftMargin, topMargin, rightMargin, bottomMargin);
-                    ServicesHelper.addLocationServiceInterface(this_);
-                    m_presenter.getRoute();
-                    progress.dismiss();
-                }
-            });
-        });
+//        m_mapView.getMapAsync(mapboxMap -> {
+//            m_map = mapboxMap;
+//            MainActivity this_ = this;
+//            ProgressDialog progress = new ProgressDialog(this);
+//            progress.setTitle("Loading");
+//            progress.setMessage("Wait while map loading...");
+//            progress.setCancelable(false); // disable dismiss by tapping outside of the dialog
+//            progress.show();
+//
+//            m_map.setStyleUrl(BuildConfig.lightMapStyle);
+//            m_map.setStyleUrl(Style.SATELLITE_STREETS, new MapboxMap.OnStyleLoadedListener() {
+//                @Override
+//                public void onStyleLoaded(String style) {
+//                    m_map.getUiSettings().setLogoEnabled(false);
+//                    m_map.getUiSettings().setAttributionEnabled(false);
+//                    m_map.getUiSettings().setTiltGesturesEnabled(false);
+//
+//                    int leftMargin = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 16, getResources().getDisplayMetrics());
+//                    int topMargin = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 56, getResources().getDisplayMetrics());
+//                    int rightMargin = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 16, getResources().getDisplayMetrics());
+//                    int bottomMargin = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 16, getResources().getDisplayMetrics());
+//                    m_map.getUiSettings().setCompassMargins(leftMargin, topMargin, rightMargin, bottomMargin);
+        ServicesHelper.addLocationServiceInterface(this);
+        m_presenter.getRoute();
+//                    progress.dismiss();
+//                }
+//            });
+//        });
     }
 
     @Override
@@ -509,7 +531,7 @@ public class MainActivity extends AppCompatActivity implements LocationServiceIn
 
         initActivity();
         if (m_mapView != null) {
-            m_mapView.onStart();
+//            m_mapView.onStart();
         }
     }
 
@@ -517,7 +539,7 @@ public class MainActivity extends AppCompatActivity implements LocationServiceIn
     public void onStop() {
         super.onStop();
         if (m_mapView != null) {
-            m_mapView.onStop();
+//            m_mapView.onStop();
         }
     }
 
@@ -550,7 +572,7 @@ public class MainActivity extends AppCompatActivity implements LocationServiceIn
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         if (m_mapView != null) {
-            m_mapView.onSaveInstanceState(outState);
+//            m_mapView.onSaveInstanceState(outState);
         }
     }
 
@@ -558,7 +580,7 @@ public class MainActivity extends AppCompatActivity implements LocationServiceIn
     public void onLowMemory() {
         super.onLowMemory();
         if (m_mapView != null) {
-            m_mapView.onLowMemory();
+//            m_mapView.onLowMemory();
         }
     }
 
@@ -566,7 +588,7 @@ public class MainActivity extends AppCompatActivity implements LocationServiceIn
     protected void onDestroy() {
         super.onDestroy();
         if (m_mapView != null) {
-            m_mapView.onDestroy();
+//            m_mapView.onDestroy();
         }
     }
 

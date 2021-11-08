@@ -7,10 +7,8 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
-import androidx.core.app.ActivityCompat;
 
-import mad.location.manager.lib.Commons.Utils;
-import mad.location.manager.lib.Loggers.GeohashRTFilter;
+import androidx.core.app.ActivityCompat;
 
 import com.example.lezh1k.sensordatacollector.Interfaces.MapInterface;
 import com.example.lezh1k.sensordatacollector.MainActivity;
@@ -19,6 +17,9 @@ import com.mapbox.mapboxsdk.geometry.LatLng;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import mad.location.manager.lib.Commons.Utils;
+import mad.location.manager.lib.Loggers.GeohashRTFilter;
 
 import static android.content.Context.LOCATION_SERVICE;
 
@@ -42,7 +43,7 @@ public class MapPresenter implements LocationListener {
 
     public void locationChanged(Location loc, CameraPosition currentCameraPosition) {
         CameraPosition.Builder position =
-                new CameraPosition.Builder(currentCameraPosition).target(new LatLng(loc));
+          new CameraPosition.Builder().target(new LatLng(loc));
         mapInterface.moveCamera(position.build());
         getRoute();
         m_lstKalmanFilteredCoordinates.add(loc);
@@ -66,7 +67,7 @@ public class MapPresenter implements LocationListener {
         for (Location loc : new ArrayList<>(m_lstGpsCoordinates)) {
             routGpsAsIs.add(new LatLng(loc.getLatitude(), loc.getLongitude()));
         }
-
+        mapInterface.clearOverlay();
         mapInterface.showRoute(routeFilteredKalman, MainActivity.FILTER_KALMAN_ONLY);
         mapInterface.showRoute(routeFilteredWithGeoHash, MainActivity.FILTER_KALMAN_WITH_GEO);
         mapInterface.showRoute(routGpsAsIs, MainActivity.GPS_ONLY);

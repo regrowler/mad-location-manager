@@ -11,6 +11,7 @@ import java.util.List;
 
 public interface MapInterface {
     void showRoute(List<LatLng> route, int interestedRoute); //second arg is HACK! :)
+    void clearOverlay();
     void moveCamera(CameraPosition position);
     void setAllGesturesEnabled(boolean enabled);
 }
