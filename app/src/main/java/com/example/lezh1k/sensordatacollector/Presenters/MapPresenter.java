@@ -42,15 +42,13 @@ public class MapPresenter implements LocationListener {
     }
 
     public void locationChanged(Location loc, CameraPosition currentCameraPosition) {
-        CameraPosition.Builder position =
-          new CameraPosition.Builder().target(new LatLng(loc));
-        mapInterface.moveCamera(position.build());
-        getRoute();
+
+        getRoute(loc);
         m_lstKalmanFilteredCoordinates.add(loc);
         m_geoHashRTFilter.filter(loc);
     }
 
-    public void getRoute() {
+    public void getRoute(Location location) {
         List<LatLng> routGpsAsIs = new ArrayList<>(m_lstGpsCoordinates.size());
         List<LatLng> routeFilteredKalman = new ArrayList<>(m_lstKalmanFilteredCoordinates.size());
         List<LatLng> routeFilteredWithGeoHash =
@@ -68,6 +66,11 @@ public class MapPresenter implements LocationListener {
             routGpsAsIs.add(new LatLng(loc.getLatitude(), loc.getLongitude()));
         }
         mapInterface.clearOverlay();
+        if (location != null) {
+            CameraPosition.Builder position =
+                    new CameraPosition.Builder().target(new LatLng(location));
+            mapInterface.moveCamera(position.build());
+        }
         mapInterface.showRoute(routeFilteredKalman, MainActivity.FILTER_KALMAN_ONLY);
         mapInterface.showRoute(routeFilteredWithGeoHash, MainActivity.FILTER_KALMAN_WITH_GEO);
         mapInterface.showRoute(routGpsAsIs, MainActivity.GPS_ONLY);
@@ -81,7 +84,7 @@ public class MapPresenter implements LocationListener {
             LocationManager lm = (LocationManager) context.getSystemService(LOCATION_SERVICE);
             lm.removeUpdates(this);
             lm.requestLocationUpdates(LocationManager.GPS_PROVIDER,
-                    Utils.GPS_MIN_TIME, Utils.GPS_MIN_DISTANCE, this );
+                    Utils.GPS_MIN_TIME, Utils.GPS_MIN_DISTANCE, this);
         }
     }
 

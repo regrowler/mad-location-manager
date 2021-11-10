@@ -48,6 +48,7 @@ import org.osmdroid.config.Configuration;
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
 import org.osmdroid.util.GeoPoint;
 import org.osmdroid.views.MapView;
+import org.osmdroid.views.overlay.Marker;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
@@ -403,6 +404,11 @@ public class MainActivity extends AppCompatActivity implements LocationServiceIn
         runOnUiThread(() ->
           m_mapView.postDelayed(() -> {
               m_mapView.getController().animateTo(new GeoPoint(position.target.getLatitude(), position.target.getLongitude()));
+              Marker marker=new Marker(m_mapView);
+//              marker.setAnchor(Marker.ANCHOR_CENTER,);
+              marker.setIcon(ContextCompat.getDrawable(this,R.drawable.ic_baseline_adb_24));
+              marker.setPosition(new GeoPoint(position.target.getLatitude(),position.target.getLongitude()));
+              m_mapView.getOverlayManager().add(marker);
           }, 100));
     }
 
@@ -458,7 +464,7 @@ public class MainActivity extends AppCompatActivity implements LocationServiceIn
 //                    int bottomMargin = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 16, getResources().getDisplayMetrics());
 //                    m_map.getUiSettings().setCompassMargins(leftMargin, topMargin, rightMargin, bottomMargin);
         ServicesHelper.addLocationServiceInterface(this);
-        m_presenter.getRoute();
+        m_presenter.getRoute(null);
 //                    progress.dismiss();
 //                }
 //            });
